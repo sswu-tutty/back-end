@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -40,18 +43,17 @@ public class StudyAssistantController {
                                                              @RequestParam String question) {
         // 인증된 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
 
-        // 사용자 정보 가져오기
+        String userId = authentication.getName();
         User user = userService.getUserByUserId(userId);
 
-        // 질문을 OpenAI API에 전달하여 답변 받기
         return openAiService.askQuestion(question)
                 .flatMap(apiResponse -> {
-                    // JSON 응답에서 "content" 필드의 응답 내용만 추출
                     String answer;
                     try {
-                        // JSON 파싱을 위한 라이브러리 사용
                         ObjectMapper objectMapper = new ObjectMapper();
                         JsonNode rootNode = objectMapper.readTree(apiResponse);
                         answer = rootNode
@@ -64,18 +66,15 @@ public class StudyAssistantController {
                         return Mono.error(new RuntimeException("Failed to parse OpenAI response", e));
                     }
 
-                    // Conversation 엔티티 생성 및 데이터 저장
                     Conversation conversation = new Conversation();
                     conversation.setChatroomId(chatroomId);
                     conversation.setQuestion(question);
-                    conversation.setAnswer(answer); // 추출된 답변 내용만 저장
+                    conversation.setAnswer(answer);
                     conversation.setCreatedAt(LocalDateTime.now());
                     conversation.setUser(user);
 
-                    // Conversation 저장
                     Conversation savedConversation = conversationService.saveConversation(conversation);
 
-                    // ConversationResponseDTO로 변환하여 응답
                     ConversationResponseDTO responseDTO = new ConversationResponseDTO(
                             savedConversation.getId(),
                             savedConversation.getChatroomId(),
@@ -89,5 +88,57 @@ public class StudyAssistantController {
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
+    @GetMapping("/conversations")
+    public ResponseEntity<List<ConversationResponseDTO>> getAllConversations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String userId = authentication.getName();
+        User user = userService.getUserByUserId(userId);
+
+        List<Conversation> conversations = conversationService.getConversationsByUser(user);
+        List<ConversationResponseDTO> responseDTOs = conversations.stream()
+                .map(conversation -> new ConversationResponseDTO(
+                        conversation.getId(),
+                        conversation.getChatroomId(),
+                        conversation.getQuestion(),
+                        conversation.getAnswer(),
+                        conversation.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    // 특정 대화 상세 조회 - 등록된 사용자에 한해서
+    @GetMapping("/conversations/{chatroomId}")
+    public ResponseEntity<List<ConversationResponseDTO>> getConversationsByChatroomId(@PathVariable Long chatroomId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String userId = authentication.getName();
+        User user = userService.getUserByUserId(userId);
+
+        List<Conversation> conversations = conversationService.getConversationsByChatroomIdAndUser(chatroomId, user);
+        if (conversations.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<ConversationResponseDTO> responseDTOs = conversations.stream()
+                .map(conversation -> new ConversationResponseDTO(
+                        conversation.getId(),
+                        conversation.getChatroomId(),
+                        conversation.getQuestion(),
+                        conversation.getAnswer(),
+                        conversation.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseDTOs);
+    }
 
 }
