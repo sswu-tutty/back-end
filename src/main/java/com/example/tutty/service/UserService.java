@@ -1,5 +1,3 @@
-// UserService.java
-
 package com.example.tutty.service;
 
 import com.example.tutty.domain.User; // 이 부분을 추가합니다
@@ -60,5 +58,11 @@ public class UserService implements UserDetailsService {
         }
 
         return user;
+    }
+
+    // 사용자 정보 조회 기능 추가
+    public User getUserByUserId(String userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId));
     }
 }
