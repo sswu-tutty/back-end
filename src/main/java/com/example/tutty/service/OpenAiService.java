@@ -35,7 +35,7 @@ public class OpenAiService {
                 .bodyValue(Map.of(
                         "model", "gpt-4o-mini", // 모델 이름
                         "messages", List.of(Map.of("role", "user", "content", modifiedQuestion)),
-                        "max_tokens", 150 // 응답의 최대 길이를 150 토큰으로 설정
+                        "max_tokens", 450 // 응답의 최대 길이를 150 토큰으로 설정
                 ))
                 .retrieve()
                 .bodyToMono(String.class);

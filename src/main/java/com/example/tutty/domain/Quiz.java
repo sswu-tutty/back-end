@@ -22,12 +22,11 @@ public class Quiz {
     @Column(name = "created_at", columnDefinition = "DATETIME(6)")
     private LocalDateTime createdAt;
 
+    @Column(name = "chatroom_id", nullable = false)
+    private Long chatroomId;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "con_id", nullable = false)
-    private Conversation conversation;
 
 }

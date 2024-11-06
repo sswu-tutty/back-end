@@ -57,12 +57,13 @@ public class NoteController {
         note.setTitle(generatedTitle);
         note.setContent(summarizedContent);
         note.setUser(user);
-        note.setConversation(conversations.get(0));
+        note.setChatroomId(chatroomId);  // 변경된 부분: chatroomId를 설정합니다.
         note.setLiked(false);
 
         Note savedNote = noteService.saveNote(note);
         return ResponseEntity.status(HttpStatus.CREATED).body(noteMapper.toDto(savedNote));
     }
+
 
     @GetMapping("/notes")
     public ResponseEntity<List<NoteResponseDTO>> getAllNotes() {

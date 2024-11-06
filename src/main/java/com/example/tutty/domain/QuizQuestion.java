@@ -34,4 +34,19 @@ public class QuizQuestion {
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
+
+    // toString() 메서드 추가
+    @Override
+    public String toString() {
+        return "QuizQuestion{" +
+                "id=" + id +
+                ", questionText='" + questionText + '\'' +
+                ", option1='" + option1 + '\'' +
+                ", option2='" + option2 + '\'' +
+                ", option3='" + option3 + '\'' +
+                ", option4='" + option4 + '\'' +
+                ", correctOption=" + correctOption +
+                ", quiz=" + (quiz != null ? quiz.getId() : null) +
+                '}';
+    }
 }

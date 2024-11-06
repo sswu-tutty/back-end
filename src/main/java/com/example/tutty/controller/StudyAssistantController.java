@@ -36,7 +36,22 @@ public class StudyAssistantController {
         this.conversationService = conversationService;
         this.userService = userService;
     }
+    @GetMapping("/conversations/first-by-chatroom")
+    public ResponseEntity<List<ConversationResponseDTO>> getEarliestConversationsByChatroom() {
+        List<Conversation> conversations = conversationService.getEarliestConversationsByChatroom();
 
+        List<ConversationResponseDTO> responseDTOs = conversations.stream()
+                .map(conversation -> new ConversationResponseDTO(
+                        conversation.getId(),
+                        conversation.getChatroomId(),
+                        conversation.getQuestion(),
+                        conversation.getAnswer(),
+                        conversation.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseDTOs);
+    }
     @PostMapping("/ask")
     public Mono<ResponseEntity<ConversationResponseDTO>> ask(@RequestParam Long chatroomId,
                                                              @RequestParam String question) {

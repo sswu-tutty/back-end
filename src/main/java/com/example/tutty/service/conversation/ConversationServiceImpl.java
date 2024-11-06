@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ConversationServiceImpl implements ConversationService {
@@ -35,8 +36,22 @@ public class ConversationServiceImpl implements ConversationService {
         return conversationRepository.findByChatroomIdAndUser(chatroomId, user);
     }
 
+    @Override
+    @Transactional
+    public List<Conversation> getEarliestConversationsByChatroom() {
+        return conversationRepository.findEarliestConversationsByChatroom();
+    }
+
+    @Override
     public List<Conversation> getConversationsByChatroomId(Long chatroomId) {
         return conversationRepository.findByChatroomId(chatroomId);
     }
 
+    @Override
+    public String getChatroomContent(Long chatroomId) {
+        List<Conversation> conversations = conversationRepository.findByChatroomId(chatroomId);
+        return conversations.stream()
+                .map(Conversation::getAnswer)
+                .collect(Collectors.joining(" "));
+    }
 }

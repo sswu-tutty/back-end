@@ -14,4 +14,7 @@ public interface ConversationService {
     List<Conversation> getConversationsByChatroomIdAndUser(Long chatroomId, User user);
 
     List<Conversation> getConversationsByChatroomId(Long chatroomId);
+    List<Conversation> getEarliestConversationsByChatroom();
+
+    String getChatroomContent(Long chatroomId);
 }

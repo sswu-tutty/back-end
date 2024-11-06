@@ -30,9 +30,8 @@ public class Note {
 
     private Boolean liked;
 
-    @ManyToOne
-    @JoinColumn(name = "con_id", nullable = false)
-    private Conversation conversation;
+    @Column(name = "chatroom_id", nullable = false)
+    private Long chatroomId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
