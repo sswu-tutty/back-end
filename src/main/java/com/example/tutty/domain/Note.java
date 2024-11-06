@@ -22,7 +22,7 @@ public class Note {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "created_at", columnDefinition = "DATETIME(6)")
+    @Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", columnDefinition = "DATETIME(6)")
@@ -38,4 +38,14 @@ public class Note {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,6 +87,102 @@ public class NoteController {
         responseDTO.setLiked(savedNote.getLiked());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+    }
+
+    @GetMapping("/notes")
+    public ResponseEntity<List<NoteResponseDTO>> getAllNotes() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        User user = userService.getUserByUserId(userId);
+
+        List<Note> notes = noteService.getNotesByUser(user);
+        List<NoteResponseDTO> noteDTOs = notes.stream().map(note -> {
+            NoteResponseDTO dto = new NoteResponseDTO();
+            dto.setId(note.getId());
+            dto.setTitle(note.getTitle());
+            dto.setContent(note.getContent());
+            dto.setCreatedAt(note.getCreatedAt());
+            dto.setUpdatedAt(note.getUpdatedAt());
+            dto.setLiked(note.getLiked());
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(noteDTOs);
+    }
+
+    @GetMapping("/notes/{noteId}")
+    public ResponseEntity<NoteResponseDTO> getNoteById(@PathVariable Long noteId) {
+        Note note = noteService.getNoteById(noteId);
+        if (note == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        NoteResponseDTO responseDTO = new NoteResponseDTO();
+        responseDTO.setId(note.getId());
+        responseDTO.setTitle(note.getTitle());
+        responseDTO.setContent(note.getContent());
+        responseDTO.setCreatedAt(note.getCreatedAt());
+        responseDTO.setUpdatedAt(note.getUpdatedAt());
+        responseDTO.setLiked(note.getLiked());
+
+        return ResponseEntity.ok(responseDTO);
+    }
+    @PutMapping("/notes/{noteId}")
+    public ResponseEntity<NoteResponseDTO> updateNote(@PathVariable Long noteId, @RequestBody NoteResponseDTO updatedNote) {
+        Note existingNote = noteService.getNoteById(noteId);
+        if (existingNote == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        existingNote.setTitle(updatedNote.getTitle());
+        existingNote.setContent(updatedNote.getContent());
+        existingNote.setUpdatedAt(LocalDateTime.now()); // Only update `updatedAt`
+
+        Note savedNote = noteService.saveNote(existingNote);
+
+        NoteResponseDTO responseDTO = new NoteResponseDTO();
+        responseDTO.setId(savedNote.getId());
+        responseDTO.setTitle(savedNote.getTitle());
+        responseDTO.setContent(savedNote.getContent());
+        responseDTO.setCreatedAt(savedNote.getCreatedAt()); // Keep original `createdAt`
+        responseDTO.setUpdatedAt(savedNote.getUpdatedAt());
+        responseDTO.setLiked(savedNote.getLiked());
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @DeleteMapping("/notes/{noteId}")
+    public ResponseEntity<Void> deleteNote(@PathVariable Long noteId) {
+        Note existingNote = noteService.getNoteById(noteId);
+        if (existingNote == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        noteService.deleteNoteById(noteId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/notes/{noteId}/bookmark")
+    public ResponseEntity<NoteResponseDTO> toggleBookmark(@PathVariable Long noteId) {
+        Note note = noteService.getNoteById(noteId);
+        if (note == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // Toggle the `liked` status
+        note.setLiked(!note.getLiked());
+        Note updatedNote = noteService.saveNote(note);
+
+        // Convert to response DTO
+        NoteResponseDTO responseDTO = new NoteResponseDTO();
+        responseDTO.setId(updatedNote.getId());
+        responseDTO.setTitle(updatedNote.getTitle());
+        responseDTO.setContent(updatedNote.getContent());
+        responseDTO.setCreatedAt(updatedNote.getCreatedAt());
+        responseDTO.setUpdatedAt(updatedNote.getUpdatedAt());
+        responseDTO.setLiked(updatedNote.getLiked());
+
+        return ResponseEntity.ok(responseDTO);
     }
 
     private String extractContent(String gptResponse) {
