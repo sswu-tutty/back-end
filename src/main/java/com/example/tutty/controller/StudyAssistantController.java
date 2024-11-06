@@ -3,7 +3,7 @@ package com.example.tutty.controller;
 import com.example.tutty.domain.Conversation;
 import com.example.tutty.domain.User;
 import com.example.tutty.dto.ConversationResponseDTO;
-import com.example.tutty.service.ConversationService;
+import com.example.tutty.service.conversation.ConversationService;
 import com.example.tutty.service.OpenAiService;
 import com.example.tutty.service.UserService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,7 +18,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController

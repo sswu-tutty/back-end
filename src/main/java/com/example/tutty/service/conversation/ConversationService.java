@@ -1,4 +1,4 @@
-package com.example.tutty.service;
+package com.example.tutty.service.conversation;
 
 import com.example.tutty.domain.Conversation;
 import com.example.tutty.domain.User;

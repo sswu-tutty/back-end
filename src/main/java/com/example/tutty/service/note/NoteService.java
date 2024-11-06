@@ -1,4 +1,4 @@
-package com.example.tutty.service;
+package com.example.tutty.service.note;
 
 import com.example.tutty.domain.Note;
 import com.example.tutty.domain.User;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NoteService {
@@ -25,8 +26,8 @@ public class NoteService {
         return noteRepository.save(note);
     }
 
-    public Note getNoteById(Long id) {
-        return noteRepository.findById(id).orElse(null);
+    public Optional<Note> getNoteById(Long noteId) {
+        return noteRepository.findById(noteId);
     }
 
     public List<Note> getNotesByUser(User user) {
