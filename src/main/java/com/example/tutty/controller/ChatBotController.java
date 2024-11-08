@@ -22,16 +22,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
-public class StudyAssistantController {
+public class ChatBotController {
 
     private final OpenAiService openAiService;
     private final ConversationService conversationService;
     private final UserService userService;
 
     @Autowired
-    public StudyAssistantController(OpenAiService openAiService,
-                                    ConversationService conversationService,
-                                    UserService userService) {
+    public ChatBotController(OpenAiService openAiService,
+                             ConversationService conversationService,
+                             UserService userService) {
         this.openAiService = openAiService;
         this.conversationService = conversationService;
         this.userService = userService;

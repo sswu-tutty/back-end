@@ -19,6 +19,11 @@ public class Quiz {
     private String title;
     private Integer totalQuestions;
     private Integer correctAnswers;
+    private boolean hasAttempted = false;
+
+    public void markAsAttempted() {
+        this.hasAttempted = true;
+    }
 
     @Column(name = "created_at", columnDefinition = "DATETIME(6)")
     private LocalDateTime createdAt;

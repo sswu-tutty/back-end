@@ -31,6 +31,8 @@ public class QuizQuestion {
 
     private Integer correctOption;
 
+    private Integer selectedOption;
+
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;

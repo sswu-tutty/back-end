@@ -1,4 +1,4 @@
-package com.example.tutty.dto;
+package com.example.tutty.dto.quiz;
 
 import lombok.Getter;
 import lombok.Setter;

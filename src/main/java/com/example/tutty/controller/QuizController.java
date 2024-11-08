@@ -1,10 +1,10 @@
 package com.example.tutty.controller;
 
-import com.example.tutty.domain.Quiz;
 import com.example.tutty.dto.QuestionResultDTO;
-import com.example.tutty.dto.QuizResponseDTO;
-import com.example.tutty.service.QuizService;
-import com.example.tutty.service.AIService;
+import com.example.tutty.dto.quiz.QuizResponseDTO;
+import com.example.tutty.dto.quiz.QuizResultDTO;
+import com.example.tutty.service.ai.QuizService;
+import com.example.tutty.service.ai.QuizAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +18,12 @@ import java.util.Map;
 public class QuizController {
 
     private final QuizService quizService;
-    private final AIService aiService;
+    private final QuizAIService quizAiService;
 
     @Autowired
-    public QuizController(QuizService quizService, AIService aiService) {
+    public QuizController(QuizService quizService, QuizAIService quizAiService) {
         this.quizService = quizService;
-        this.aiService = aiService;
+        this.quizAiService = quizAiService;
     }
 
     @PostMapping("/quiz/generate/{chatroomId}")
@@ -36,5 +36,11 @@ public class QuizController {
     public ResponseEntity<List<QuestionResultDTO>> submitQuizAnswers(@PathVariable Long quizId, @RequestBody Map<Long, Integer> userAnswers) {
         List<QuestionResultDTO> questionResults = quizService.evaluateQuiz(quizId, userAnswers);
         return ResponseEntity.ok(questionResults);
+    }
+
+    @GetMapping("/quiz/{quizId}/result")
+    public ResponseEntity<QuizResultDTO> getQuizResult(@PathVariable Long quizId) {
+        QuizResultDTO quizResult = quizService.getQuizResult(quizId);
+        return ResponseEntity.ok(quizResult);
     }
 }

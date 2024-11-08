@@ -1,22 +1,21 @@
-package com.example.tutty.service;
+package com.example.tutty.service.ai;
 
 import com.example.tutty.domain.QuizQuestion;
+import com.example.tutty.service.OpenAiService;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
-public class AIService {
+public class QuizAIService {
 
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
 
-    public AIService(OpenAiService openAiService, ObjectMapper objectMapper) {
+    public QuizAIService(OpenAiService openAiService, ObjectMapper objectMapper) {
         this.openAiService = openAiService;
         this.objectMapper = objectMapper;
     }

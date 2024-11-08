@@ -1,15 +1,16 @@
-package com.example.tutty.service;
+package com.example.tutty.service.ai;
 
 import com.example.tutty.domain.Quiz;
 import com.example.tutty.domain.QuizQuestion;
 import com.example.tutty.dto.QuestionResultDTO;
-import com.example.tutty.dto.QuizResponseDTO;
-import com.example.tutty.dto.QuizQuestionResponseDTO;
+import com.example.tutty.dto.quiz.QuizResponseDTO;
+import com.example.tutty.dto.quiz.QuizQuestionResponseDTO;
+import com.example.tutty.dto.quiz.QuizResultDTO;
 import com.example.tutty.repository.QuizRepository;
 import com.example.tutty.repository.QuizQuestionRepository;
+import com.example.tutty.service.UserService;
 import com.example.tutty.service.conversation.ConversationService;
 import com.example.tutty.domain.User;
-import com.example.tutty.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,17 +27,17 @@ public class QuizService {
 
     private final QuizRepository quizRepository;
     private final QuizQuestionRepository quizQuestionRepository;
-    private final AIService aiService;
+    private final QuizAIService quizAiService;
     private final ConversationService conversationService;
     private final UserService userService; // UserService 추가
 
     @Autowired
     public QuizService(QuizRepository quizRepository, QuizQuestionRepository quizQuestionRepository,
-                       AIService aiService, ConversationService conversationService,
+                       QuizAIService quizAiService, ConversationService conversationService,
                        UserService userService) {
         this.quizRepository = quizRepository;
         this.quizQuestionRepository = quizQuestionRepository;
-        this.aiService = aiService;
+        this.quizAiService = quizAiService;
         this.conversationService = conversationService;
         this.userService = userService;
     }
@@ -59,7 +60,7 @@ public class QuizService {
 
     private Quiz createAndSaveQuiz(Long chatroomId, User user) {
         String fullContent = conversationService.getChatroomContent(chatroomId);
-        List<QuizQuestion> questions = aiService.generateQuizQuestions(fullContent);
+        List<QuizQuestion> questions = quizAiService.generateQuizQuestions(fullContent);
 
         Quiz quiz = new Quiz();
         quiz.setTotalQuestions(questions.size());
@@ -99,6 +100,10 @@ public class QuizService {
 
         for (QuizQuestion question : questions) {
             Integer userAnswer = userAnswers.get(question.getId());
+
+            // 사용자의 선택을 selectedOption에 설정
+            question.setSelectedOption(userAnswer);
+
             boolean isCorrect = userAnswer != null && userAnswer.equals(question.getCorrectOption());
 
             if (isCorrect) {
@@ -112,15 +117,39 @@ public class QuizService {
                     isCorrect,
                     question.getCorrectOption()
             );
+
             questionResults.add(result);
         }
 
         // Update the correctAnswers in the Quiz entity
+        quiz.setHasAttempted(true);
         quiz.setCorrectAnswers(correctCount);
         quizRepository.save(quiz);
 
         return questionResults;
     }
+
+    public QuizResultDTO getQuizResult(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
+
+        List<QuestionResultDTO> questionResults = questions.stream()
+                .map(question -> new QuestionResultDTO(
+                        question.getId(),
+                        question.getQuestionText(),
+                        question.getSelectedOption(),
+                        question.getCorrectOption().equals(question.getSelectedOption()), // isCorrect
+                        question.getCorrectOption()
+                ))
+                .collect(Collectors.toList());
+
+
+        int correctCount = (int) questionResults.stream().filter(QuestionResultDTO::isCorrect).count();
+        int totalQuestions = questionResults.size();
+
+        return new QuizResultDTO(totalQuestions, correctCount, questionResults, quiz.isHasAttempted());    }
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
