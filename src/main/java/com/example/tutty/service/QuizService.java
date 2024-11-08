@@ -2,6 +2,7 @@ package com.example.tutty.service;
 
 import com.example.tutty.domain.Quiz;
 import com.example.tutty.domain.QuizQuestion;
+import com.example.tutty.dto.QuestionResultDTO;
 import com.example.tutty.dto.QuizResponseDTO;
 import com.example.tutty.dto.QuizQuestionResponseDTO;
 import com.example.tutty.repository.QuizRepository;
@@ -13,8 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +87,40 @@ public class QuizService {
                 question.getCorrectOption()
         );
     }
+    @Transactional
+    public List<QuestionResultDTO> evaluateQuiz(Long quizId, Map<Long, Integer> userAnswers) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
+
+        List<QuestionResultDTO> questionResults = new ArrayList<>();
+        int correctCount = 0;
+
+        for (QuizQuestion question : questions) {
+            Integer userAnswer = userAnswers.get(question.getId());
+            boolean isCorrect = userAnswer != null && userAnswer.equals(question.getCorrectOption());
+
+            if (isCorrect) {
+                correctCount++;
+            }
+
+            QuestionResultDTO result = new QuestionResultDTO(
+                    question.getId(),
+                    question.getQuestionText(),
+                    userAnswer,
+                    isCorrect,
+                    question.getCorrectOption()
+            );
+            questionResults.add(result);
+        }
+
+        // Update the correctAnswers in the Quiz entity
+        quiz.setCorrectAnswers(correctCount);
+        quizRepository.save(quiz);
+
+        return questionResults;
+    }
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
