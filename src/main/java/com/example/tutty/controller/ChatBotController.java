@@ -36,9 +36,13 @@ public class ChatBotController {
         this.conversationService = conversationService;
         this.userService = userService;
     }
-    @GetMapping("/conversations/first-by-chatroom")
+    @GetMapping("/conversations")
     public ResponseEntity<List<ConversationResponseDTO>> getEarliestConversationsByChatroom() {
-        List<Conversation> conversations = conversationService.getEarliestConversationsByChatroom();
+        // 현재 로그인한 사용자 가져오기
+        User user = getCurrentUser();
+
+        // 사용자별 가장 오래된 대화 가져오기
+        List<Conversation> conversations = conversationService.getEarliestConversationsByChatroomAndUser(user);
 
         List<ConversationResponseDTO> responseDTOs = conversations.stream()
                 .map(conversation -> new ConversationResponseDTO(
@@ -52,6 +56,7 @@ public class ChatBotController {
 
         return ResponseEntity.ok(responseDTOs);
     }
+
     @PostMapping("/ask")
     public Mono<ResponseEntity<ConversationResponseDTO>> ask(@RequestParam Long chatroomId,
                                                              @RequestParam String question) {
@@ -80,6 +85,7 @@ public class ChatBotController {
                         return Mono.error(new RuntimeException("Failed to parse OpenAI response", e));
                     }
 
+                    // 사용자별로 chatroomId를 가지도록 Conversation 생성
                     Conversation conversation = new Conversation();
                     conversation.setChatroomId(chatroomId);
                     conversation.setQuestion(question);
@@ -102,7 +108,7 @@ public class ChatBotController {
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
-    @GetMapping("/conversations")
+    @GetMapping("/conversations/all")
     public ResponseEntity<List<ConversationResponseDTO>> getAllConversations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -126,7 +132,6 @@ public class ChatBotController {
         return ResponseEntity.ok(responseDTOs);
     }
 
-    // 특정 대화 상세 조회 - 등록된 사용자에 한해서
     @GetMapping("/conversations/{chatroomId}")
     public ResponseEntity<List<ConversationResponseDTO>> getConversationsByChatroomId(@PathVariable Long chatroomId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -137,6 +142,7 @@ public class ChatBotController {
         String userId = authentication.getName();
         User user = userService.getUserByUserId(userId);
 
+        // 사용자와 chatroomId를 함께 확인하여 대화 조회
         List<Conversation> conversations = conversationService.getConversationsByChatroomIdAndUser(chatroomId, user);
         if (conversations.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -153,6 +159,14 @@ public class ChatBotController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseDTOs);
+    }
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated");
+        }
+        String userId = authentication.getName();
+        return userService.getUserByUserId(userId);
     }
 
 }

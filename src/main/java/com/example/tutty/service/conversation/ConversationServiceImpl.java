@@ -35,12 +35,11 @@ public class ConversationServiceImpl implements ConversationService {
     public List<Conversation> getConversationsByChatroomIdAndUser(Long chatroomId, User user) {
         return conversationRepository.findByChatroomIdAndUser(chatroomId, user);
     }
-
     @Override
-    @Transactional
-    public List<Conversation> getEarliestConversationsByChatroom() {
-        return conversationRepository.findEarliestConversationsByChatroom();
+    public List<Conversation> getEarliestConversationsByChatroomAndUser(User user) {
+        return conversationRepository.findEarliestConversationsByUser(user);
     }
+
 
     @Override
     public List<Conversation> getConversationsByChatroomId(Long chatroomId) {

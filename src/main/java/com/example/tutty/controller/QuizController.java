@@ -45,7 +45,7 @@ public class QuizController {
         return ResponseEntity.ok(quizResult);
     }
 
-    @GetMapping("/quiz/all")
+    @GetMapping("/quiz")
     public List<QuizResponseDTO> getAllQuizzes() {
         return quizService.getAllQuizzesByUser();
     }
