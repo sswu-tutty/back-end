@@ -1,6 +1,5 @@
 package com.example.tutty.dto.quiz;
 
-import com.example.tutty.dto.QuestionResultDTO;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,8 +1,8 @@
-package com.example.tutty.service.ai;
+package com.example.tutty.service.quiz;
 
 import com.example.tutty.domain.Quiz;
 import com.example.tutty.domain.QuizQuestion;
-import com.example.tutty.dto.QuestionResultDTO;
+import com.example.tutty.dto.quiz.QuestionResultDTO;
 import com.example.tutty.dto.quiz.QuizResponseDTO;
 import com.example.tutty.dto.quiz.QuizQuestionResponseDTO;
 import com.example.tutty.dto.quiz.QuizResultDTO;
@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +51,19 @@ public class QuizService {
         Quiz quiz = createAndSaveQuiz(chatroomId, user);
         List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quiz.getId());
 
-        // DTO 변환
-        List<QuizQuestionResponseDTO> questionDTOs = questions.stream()
-                .map(this::toQuizQuestionResponseDTO)
-                .collect(Collectors.toList());
+        // 첫 번째 질문 텍스트 가져오기
+        String firstQuestionText = questions.isEmpty() ? null : questions.get(0).getQuestionText();
 
-        return new QuizResponseDTO(quiz.getId(), quiz.getTotalQuestions(), questionDTOs);
+        // hasAttempted, correctCount 포함하여 QuizResponseDTO 생성
+        return new QuizResponseDTO(
+                quiz.getId(),
+                quiz.getTotalQuestions(),
+                quiz.getCorrectAnswers(),
+                firstQuestionText,
+                quiz.isHasAttempted()
+        );
     }
+
 
     private Quiz createAndSaveQuiz(Long chatroomId, User user) {
         String fullContent = conversationService.getChatroomContent(chatroomId);
@@ -93,17 +100,20 @@ public class QuizService {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
-        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
+        // 현재 사용자가 퀴즈의 소유자인지 확인
+        User currentUser = getCurrentUser();
+        if (!quiz.getUser().equals(currentUser)) {
+            throw new SecurityException("Unauthorized access to this quiz.");
+        }
 
+        // 나머지 로직
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
         List<QuestionResultDTO> questionResults = new ArrayList<>();
         int correctCount = 0;
 
         for (QuizQuestion question : questions) {
             Integer userAnswer = userAnswers.get(question.getId());
-
-            // 사용자의 선택을 selectedOption에 설정
             question.setSelectedOption(userAnswer);
-
             boolean isCorrect = userAnswer != null && userAnswer.equals(question.getCorrectOption());
 
             if (isCorrect) {
@@ -117,11 +127,9 @@ public class QuizService {
                     isCorrect,
                     question.getCorrectOption()
             );
-
             questionResults.add(result);
         }
 
-        // Update the correctAnswers in the Quiz entity
         quiz.setHasAttempted(true);
         quiz.setCorrectAnswers(correctCount);
         quizRepository.save(quiz);
@@ -129,27 +137,54 @@ public class QuizService {
         return questionResults;
     }
 
-    public QuizResultDTO getQuizResult(Long quizId) {
+    public QuizResultDTO getQuizResult(Long quizId) throws AccessDeniedException {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
-        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
+        User currentUser = getCurrentUser();
+        if (!quiz.getUser().equals(currentUser)) {
+            throw new AccessDeniedException("Unauthorized access to this quiz.");
+        }
 
+        // 나머지 로직
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
         List<QuestionResultDTO> questionResults = questions.stream()
                 .map(question -> new QuestionResultDTO(
                         question.getId(),
                         question.getQuestionText(),
                         question.getSelectedOption(),
-                        question.getCorrectOption().equals(question.getSelectedOption()), // isCorrect
+                        question.getCorrectOption().equals(question.getSelectedOption()),
                         question.getCorrectOption()
                 ))
                 .collect(Collectors.toList());
 
-
         int correctCount = (int) questionResults.stream().filter(QuestionResultDTO::isCorrect).count();
         int totalQuestions = questionResults.size();
 
-        return new QuizResultDTO(totalQuestions, correctCount, questionResults, quiz.isHasAttempted());    }
+        return new QuizResultDTO(totalQuestions, correctCount, questionResults, quiz.isHasAttempted());
+    }
+
+    public List<QuizResponseDTO> getAllQuizzesByUser() {
+        User user = getCurrentUser();
+        List<Quiz> quizzes = quizRepository.findByUser(user);
+
+        return quizzes.stream()
+                .map(quiz -> {
+                    List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quiz.getId());
+                    String firstQuestionText = questions.isEmpty() ? null : questions.get(0).getQuestionText();
+
+                    return new QuizResponseDTO(
+                            quiz.getId(),
+                            quiz.getTotalQuestions(),
+                            quiz.getCorrectAnswers(),
+                            firstQuestionText,
+                            quiz.isHasAttempted()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();

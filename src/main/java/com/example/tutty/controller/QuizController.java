@@ -1,15 +1,16 @@
 package com.example.tutty.controller;
 
-import com.example.tutty.dto.QuestionResultDTO;
+import com.example.tutty.dto.quiz.QuestionResultDTO;
 import com.example.tutty.dto.quiz.QuizResponseDTO;
 import com.example.tutty.dto.quiz.QuizResultDTO;
-import com.example.tutty.service.ai.QuizService;
-import com.example.tutty.service.ai.QuizAIService;
+import com.example.tutty.service.quiz.QuizService;
+import com.example.tutty.service.quiz.QuizAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +40,13 @@ public class QuizController {
     }
 
     @GetMapping("/quiz/{quizId}/result")
-    public ResponseEntity<QuizResultDTO> getQuizResult(@PathVariable Long quizId) {
+    public ResponseEntity<QuizResultDTO> getQuizResult(@PathVariable Long quizId) throws AccessDeniedException {
         QuizResultDTO quizResult = quizService.getQuizResult(quizId);
         return ResponseEntity.ok(quizResult);
+    }
+
+    @GetMapping("/quiz/all")
+    public List<QuizResponseDTO> getAllQuizzes() {
+        return quizService.getAllQuizzesByUser();
     }
 }

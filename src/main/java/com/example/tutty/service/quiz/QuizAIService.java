@@ -1,4 +1,4 @@
-package com.example.tutty.service.ai;
+package com.example.tutty.service.quiz;
 
 import com.example.tutty.domain.QuizQuestion;
 import com.example.tutty.service.OpenAiService;
