@@ -2,7 +2,7 @@
 package com.example.tutty.controller;
 
 import com.example.tutty.domain.User;
-import com.example.tutty.dto.UserDTO;
+import com.example.tutty.dto.user.UserDTO;
 import com.example.tutty.security.JwtTokenProvider;
 import com.example.tutty.service.UserService;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.example.tutty.service;
 
 import com.example.tutty.domain.User; // 이 부분을 추가합니다
-import com.example.tutty.dto.UserDTO;
+import com.example.tutty.dto.user.UserDTO;
 import com.example.tutty.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;

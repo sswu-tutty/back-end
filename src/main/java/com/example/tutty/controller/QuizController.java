@@ -49,4 +49,11 @@ public class QuizController {
     public List<QuizResponseDTO> getAllQuizzes() {
         return quizService.getAllQuizzesByUser();
     }
+
+    @PatchMapping("/quiz/{quizId}/bookmark")
+    public ResponseEntity<QuizResponseDTO> toggleQuizBookmark(@PathVariable Long quizId) {
+        QuizResponseDTO quizResponse = quizService.toggleQuizBookmark(quizId);
+        return ResponseEntity.ok(quizResponse);
+    }
+
 }

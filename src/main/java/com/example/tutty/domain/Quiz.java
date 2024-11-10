@@ -20,6 +20,7 @@ public class Quiz {
     private Integer totalQuestions;
     private Integer correctAnswers;
     private boolean hasAttempted = false;
+    private Boolean liked = false;
 
     public void markAsAttempted() {
         this.hasAttempted = true;

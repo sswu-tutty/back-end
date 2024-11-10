@@ -2,7 +2,7 @@ package com.example.tutty.controller;
 
 import com.example.tutty.domain.Conversation;
 import com.example.tutty.domain.User;
-import com.example.tutty.dto.ConversationResponseDTO;
+import com.example.tutty.dto.chat.ConversationResponseDTO;
 import com.example.tutty.service.conversation.ConversationService;
 import com.example.tutty.service.OpenAiService;
 import com.example.tutty.service.UserService;

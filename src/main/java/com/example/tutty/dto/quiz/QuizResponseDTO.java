@@ -7,16 +7,19 @@ import lombok.Setter;
 @Setter
 public class QuizResponseDTO {
     private Long quizId;
-    private int totalQuestions;
-    private int correctCount;
+    private Integer totalQuestions;
+    private Integer correctAnswers;
     private String firstQuestionText;
     private boolean hasAttempted;
+    private Boolean liked;
 
-    public QuizResponseDTO(Long quizId, int totalQuestions, int correctCount, String firstQuestionText, boolean hasAttempted) {
+    public QuizResponseDTO(Long quizId, Integer totalQuestions, Integer correctAnswers,
+                           String firstQuestionText, boolean hasAttempted, Boolean liked) {
         this.quizId = quizId;
         this.totalQuestions = totalQuestions;
-        this.correctCount = correctCount;
+        this.correctAnswers = correctAnswers;
         this.firstQuestionText = firstQuestionText;
         this.hasAttempted = hasAttempted;
+        this.liked = liked;
     }
 }

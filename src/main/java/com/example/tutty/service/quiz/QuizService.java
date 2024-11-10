@@ -54,13 +54,13 @@ public class QuizService {
         // 첫 번째 질문 텍스트 가져오기
         String firstQuestionText = questions.isEmpty() ? null : questions.get(0).getQuestionText();
 
-        // hasAttempted, correctCount 포함하여 QuizResponseDTO 생성
         return new QuizResponseDTO(
                 quiz.getId(),
                 quiz.getTotalQuestions(),
                 quiz.getCorrectAnswers(),
                 firstQuestionText,
-                quiz.isHasAttempted()
+                quiz.isHasAttempted(),
+                quiz.getLiked()
         );
     }
 
@@ -178,10 +178,39 @@ public class QuizService {
                             quiz.getTotalQuestions(),
                             quiz.getCorrectAnswers(),
                             firstQuestionText,
-                            quiz.isHasAttempted()
+                            quiz.isHasAttempted(),
+                            quiz.getLiked()
                     );
                 })
                 .collect(Collectors.toList());
+    }
+    @Transactional
+    public QuizResponseDTO toggleQuizBookmark(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // Ensure the current user is the owner of the quiz
+        User currentUser = getCurrentUser();
+        if (!quiz.getUser().equals(currentUser)) {
+            throw new SecurityException("Unauthorized access to this quiz.");
+        }
+
+        // Toggle the liked status
+        quiz.setLiked(!quiz.getLiked());
+        quizRepository.save(quiz);
+
+        // Prepare the response
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quiz.getId());
+        String firstQuestionText = questions.isEmpty() ? null : questions.get(0).getQuestionText();
+
+        return new QuizResponseDTO(
+                quiz.getId(),
+                quiz.getTotalQuestions(),
+                quiz.getCorrectAnswers(),
+                firstQuestionText,
+                quiz.isHasAttempted(),
+                quiz.getLiked()
+        );
     }
 
 
