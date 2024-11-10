@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,27 +19,42 @@ public class OpenAiService {
     @Value("${openai.api.key}")
     private String apiKey;
 
+    // 대화 히스토리를 유지하기 위한 리스트
+    private final List<Map<String, String>> conversationHistory = new ArrayList<>();
+
     public OpenAiService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.openai.com")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
+
+        // 시스템 메시지를 대화 히스토리에 추가 (필요에 따라 수정 가능)
+        conversationHistory.add(Map.of("role", "system", "content", "You are a helpful assistant."));
     }
 
     public Mono<String> askQuestion(String question) {
-        // 질문에 조건을 추가하여 답변을 간결하게 요청
-        String modifiedQuestion = question + " 이 질문에 대해 간단하고 150토큰 이내로 답변해 주세요.";
+        // 사용자 질문을 대화 히스토리에 추가
+        conversationHistory.add(Map.of("role", "user", "content", question));
 
         return webClient.post()
                 .uri("/v1/chat/completions")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .bodyValue(Map.of(
-                        "model", "gpt-4o-mini", // 모델 이름
-                        "messages", List.of(Map.of("role", "user", "content", modifiedQuestion)),
-                        "max_tokens", 450 // 응답의 최대 길이를 150 토큰으로 설정
+                        "model", "gpt-4-turbo",
+                        "messages", conversationHistory,
+                        "max_tokens", 550
                 ))
                 .retrieve()
-                .bodyToMono(String.class);
-    }
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    // 응답을 Map으로 변환 후 내용을 추출
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String assistantReply = (String) message.get("content");
 
+                    // 응답 메시지를 대화 히스토리에 추가
+                    conversationHistory.add(Map.of("role", "assistant", "content", assistantReply));
+                    return assistantReply;
+                });
+    }
 }

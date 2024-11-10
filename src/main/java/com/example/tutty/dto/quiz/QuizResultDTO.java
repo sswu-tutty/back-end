@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+//특정 퀴즈의 결과를 반환하기 위한 DTO입니다
 @Getter
 @Setter
 public class QuizResultDTO {

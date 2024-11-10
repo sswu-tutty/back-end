@@ -23,12 +23,26 @@ public class NoteSummaryService {
     }
 
     private String extractContent(String gptResponse) {
+        // gptResponse가 JSON 형식인지 아닌지 확인
+        if (gptResponse == null || gptResponse.trim().isEmpty()) {
+            return "추출 실패";
+        }
+
+        // JSON 형식이 아닐 경우 그대로 반환
+        if (!gptResponse.trim().startsWith("{")) {
+            return gptResponse.trim();
+        }
+
         try {
+            // JSON 형식일 경우 파싱
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(gptResponse);
             return rootNode.path("choices").get(0).path("message").path("content").asText();
         } catch (Exception e) {
+            System.err.println("Error parsing AI response: " + e.getMessage());
+            e.printStackTrace();
             return "추출 실패";
         }
     }
+
 }

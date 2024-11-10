@@ -123,10 +123,15 @@ public class QuizService {
             QuestionResultDTO result = new QuestionResultDTO(
                     question.getId(),
                     question.getQuestionText(),
+                    question.getOption1(),
+                    question.getOption2(),
+                    question.getOption3(),
+                    question.getOption4(),
                     userAnswer,
                     isCorrect,
                     question.getCorrectOption()
             );
+
             questionResults.add(result);
         }
 
@@ -146,12 +151,15 @@ public class QuizService {
             throw new AccessDeniedException("Unauthorized access to this quiz.");
         }
 
-        // 나머지 로직
         List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quizId);
         List<QuestionResultDTO> questionResults = questions.stream()
                 .map(question -> new QuestionResultDTO(
                         question.getId(),
                         question.getQuestionText(),
+                        question.getOption1(),
+                        question.getOption2(),
+                        question.getOption3(),
+                        question.getOption4(),
                         question.getSelectedOption(),
                         question.getCorrectOption().equals(question.getSelectedOption()),
                         question.getCorrectOption()

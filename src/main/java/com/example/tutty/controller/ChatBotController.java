@@ -58,9 +58,7 @@ public class ChatBotController {
     }
 
     @PostMapping("/ask")
-    public Mono<ResponseEntity<ConversationResponseDTO>> ask(@RequestParam Long chatroomId,
-                                                             @RequestParam String question) {
-        // 인증된 사용자 정보 가져오기
+    public Mono<ResponseEntity<ConversationResponseDTO>> ask(@RequestParam Long chatroomId, @RequestParam String question) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
@@ -72,8 +70,10 @@ public class ChatBotController {
         return openAiService.askQuestion(question)
                 .flatMap(apiResponse -> {
                     String answer;
+                    ObjectMapper objectMapper = new ObjectMapper();
+
                     try {
-                        ObjectMapper objectMapper = new ObjectMapper();
+                        // 응답이 JSON인지 확인
                         JsonNode rootNode = objectMapper.readTree(apiResponse);
                         answer = rootNode
                                 .path("choices")
@@ -82,10 +82,11 @@ public class ChatBotController {
                                 .path("content")
                                 .asText();
                     } catch (Exception e) {
-                        return Mono.error(new RuntimeException("Failed to parse OpenAI response", e));
+                        // JSON 형식이 아니면 그대로 문자열로 간주
+                        answer = apiResponse;
                     }
 
-                    // 사용자별로 chatroomId를 가지도록 Conversation 생성
+                    // 사용자와 chatroomId에 따라 Conversation 생성 및 저장
                     Conversation conversation = new Conversation();
                     conversation.setChatroomId(chatroomId);
                     conversation.setQuestion(question);
@@ -107,7 +108,6 @@ public class ChatBotController {
                 })
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
-
     @GetMapping("/conversations/all")
     public ResponseEntity<List<ConversationResponseDTO>> getAllConversations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

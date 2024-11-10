@@ -50,17 +50,12 @@ public class QuizAIService {
             // 원본 AI 응답 출력
             System.out.println("AI raw response: " + response);
 
-            // JSON 응답을 직접 파싱하여 JSON 배열 추출
+            // JSON 응답을 파싱하여 quizzes 배열 추출
             JsonNode rootNode = objectMapper.readTree(response);
-            JsonNode choicesNode = rootNode.path("choices").get(0).path("message").path("content");
+            JsonNode quizzesArrayNode = rootNode.path("quizzes");
 
-            if (choicesNode.isTextual()) {
-                String jsonContent = choicesNode.asText();
-                System.out.println("Extracted JSON content: " + jsonContent);
-
-                // JSON 배열 파싱
-                JsonNode quizArrayNode = objectMapper.readTree(jsonContent);
-                for (JsonNode node : quizArrayNode) {
+            if (quizzesArrayNode.isArray()) {
+                for (JsonNode node : quizzesArrayNode) {
                     QuizQuestion quizQuestion = new QuizQuestion();
                     quizQuestion.setQuestionText(node.path("questionText").asText());
                     quizQuestion.setOption1(node.path("option1").asText());
@@ -69,6 +64,7 @@ public class QuizAIService {
                     quizQuestion.setOption4(node.path("option4").asText());
                     quizQuestion.setCorrectOption(node.path("correctOption").asInt());
 
+                    // 유효성 검사
                     if (quizQuestion.getQuestionText().isEmpty() ||
                             quizQuestion.getOption1().isEmpty() ||
                             quizQuestion.getOption2().isEmpty() ||
@@ -80,7 +76,7 @@ public class QuizAIService {
                     quizQuestions.add(quizQuestion);
                 }
             } else {
-                System.err.println("JSON 형식을 찾을 수 없습니다. AI 응답: " + response);
+                System.err.println("quizzes 배열을 찾을 수 없습니다. AI 응답: " + response);
             }
 
         } catch (Exception e) {

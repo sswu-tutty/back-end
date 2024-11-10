@@ -3,6 +3,7 @@ package com.example.tutty.dto.quiz;
 import lombok.Getter;
 import lombok.Setter;
 
+// 퀴즈 질문의 세부 정보를 반환하기 위한 DTO입니다.
 @Getter
 @Setter
 public class QuizQuestionResponseDTO {
