@@ -1,8 +1,7 @@
-//UserController
 package com.example.tutty.controller;
 
-import com.example.tutty.domain.User;
 import com.example.tutty.dto.user.UserDTO;
+import com.example.tutty.exception.InvalidCredentialsException;
 import com.example.tutty.security.JwtTokenProvider;
 import com.example.tutty.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,9 +34,14 @@ public class UserController {
 
     // 회원가입 API
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody UserDTO userDTO) {
-        User registeredUser = userService.registerUser(userDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+    public ResponseEntity<Map<String, String>> registerUser(@RequestBody UserDTO userDTO) {
+        userService.registerUser(userDTO);
+
+        // 응답 메시지 생성
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "회원가입 성공");
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     // 로그인 API
@@ -60,7 +63,8 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (AuthenticationException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password.");
+            throw new InvalidCredentialsException("Invalid username or password.");
         }
     }
+
 }

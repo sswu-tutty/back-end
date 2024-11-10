@@ -1,7 +1,8 @@
 package com.example.tutty.service;
 
-import com.example.tutty.domain.User; // 이 부분을 추가합니다
+import com.example.tutty.domain.User;
 import com.example.tutty.dto.user.UserDTO;
+import com.example.tutty.exception.UserAlreadyExistsException;
 import com.example.tutty.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +38,7 @@ public class UserService implements UserDetailsService {
     // 회원가입 기능
     public User registerUser(UserDTO userDTO) {
         if (userRepository.existsByUserId(userDTO.getUserId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID already exists.");
+            throw new UserAlreadyExistsException("User ID already exists.");
         }
 
         User user = new User();
@@ -47,6 +48,7 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(user);
     }
+
 
     // 로그인 기능
     public User loginUser(String userId, String password) {

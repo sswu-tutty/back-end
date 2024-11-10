@@ -213,6 +213,21 @@ public class QuizService {
         );
     }
 
+    @Transactional
+    public void deleteQuiz(Long quizId) {
+        // 퀴즈 조회
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // 현재 사용자가 퀴즈 소유자인지 확인
+        User currentUser = getCurrentUser();
+        if (!quiz.getUser().equals(currentUser)) {
+            throw new SecurityException("Unauthorized access to this quiz.");
+        }
+
+        // 퀴즈 삭제
+        quizRepository.delete(quiz);
+    }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

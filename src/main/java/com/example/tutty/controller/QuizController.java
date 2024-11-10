@@ -56,4 +56,10 @@ public class QuizController {
         return ResponseEntity.ok(quizResponse);
     }
 
+    @DeleteMapping("/quiz/{quizId}")
+    public ResponseEntity<Void> deleteQuiz(@PathVariable Long quizId) {
+        quizService.deleteQuiz(quizId);
+        return ResponseEntity.noContent().build(); // 삭제 성공 시 204 No Content 응답
+    }
+
 }
