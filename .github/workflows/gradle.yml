@@ -49,16 +49,3 @@ jobs:
     # 5. Docker Hub 이미지 푸시
     - name: docker Hub push
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
-    
-    - name: Deploy to EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
-          if [ $(sudo docker ps -q -f name=tutty) ]; then
-            sudo docker stop tutty
-            sudo docker rm tutty
-          fi
-          sudo docker run -d --name tutty -p 8080:8080 --env-file ~/.env ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
-        EOF
-      env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
