@@ -10,10 +10,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +64,17 @@ public class UserController {
         } catch (AuthenticationException ex) {
             throw new InvalidCredentialsException("Invalid username or password.");
         }
+    }
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, String>> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        // 사용자 이름 가져오기
+        String userName = userService.getUserNameByUserId(userDetails.getUsername());
+
+        // 응답으로 사용자 이름을 반환
+        Map<String, String> response = new HashMap<>();
+        response.put("name", userName);
+
+        return ResponseEntity.ok(response);
     }
 
 }

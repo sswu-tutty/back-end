@@ -61,6 +61,13 @@ public class UserService implements UserDetailsService {
 
         return user;
     }
+    // 사용자 이름 조회 기능 추가
+    public String getUserNameByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId));
+        return user.getName();
+    }
+
 
     // 사용자 정보 조회 기능 추가
     public User getUserByUserId(String userId) {
