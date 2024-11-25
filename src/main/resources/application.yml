@@ -24,4 +24,7 @@ jwt:
 openai:
   api:
     key: ${OPENAI_API_KEY}
-    base-url: "https://api.openai.com/v1/assistants"  # Assistants API 엔드포인트
+    base-url: "https://api.openai.com/v1/assistants"
+  second:
+    api:
+      key: ${OPENAI_API_KEY2}

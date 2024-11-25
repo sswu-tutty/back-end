@@ -57,7 +57,7 @@ public class NoteController {
         note.setTitle(generatedTitle);
         note.setContent(summarizedContent);
         note.setUser(user);
-        note.setChatroomId(chatroomId);  // 변경된 부분: chatroomId를 설정합니다.
+        note.setChatroomId(chatroomId);
         note.setLiked(false);
 
         Note savedNote = noteService.saveNote(note);
@@ -105,7 +105,6 @@ public class NoteController {
         return ResponseEntity.ok(noteMapper.toDto(updatedNote));
     }
 
-    // 공통 예외 처리 메서드
     private Note findNoteOrThrow(Long noteId) {
         return noteService.getNoteById(noteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
@@ -115,5 +114,4 @@ public class NoteController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return userService.getUserByUserId(authentication.getName());
     }
-
 }
