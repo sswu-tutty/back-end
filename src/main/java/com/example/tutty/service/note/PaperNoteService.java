@@ -7,6 +7,7 @@ import com.example.tutty.repository.PaperNoteRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PaperNoteService {
@@ -27,5 +28,9 @@ public class PaperNoteService {
 
     public void deletePaperNoteById(Long id) {
         paperNoteRepository.deleteById(id);
+    }
+
+    public Optional<PaperNote> getPaperNoteById(Long id) {
+        return paperNoteRepository.findById(id);
     }
 }

@@ -12,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/paper-notes")
@@ -47,5 +51,23 @@ public class PaperNoteController {
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return userService.getUserByUserId(authentication.getName());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PaperNoteResponseDTO>> getAllPaperNotes() {
+        User user = getCurrentUser();
+        List<PaperNote> paperNotes = paperNoteService.getPaperNotesByUser(user);
+        List<PaperNoteResponseDTO> response = paperNotes.stream()
+                .map(PaperNoteResponseDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    // 단일 논문 요약 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<PaperNoteResponseDTO> getPaperNoteById(@PathVariable Long id) {
+        PaperNote paperNote = paperNoteService.getPaperNoteById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PaperNote not found"));
+        return ResponseEntity.ok(new PaperNoteResponseDTO(paperNote));
     }
 }
