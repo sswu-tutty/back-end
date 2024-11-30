@@ -15,11 +15,15 @@ public class NoteSummaryService {
     }
 
     public String summarizeContent(String fullContent) {
-        return extractContent(openAiService.askQuestion("다음 대화 내용을 요약해줘: " + fullContent).block());
+        // 고정된 threadId를 사용하여 요약 요청
+        String threadId = "note-summary";
+        return extractContent(openAiService.askQuestion(threadId, "다음 대화 내용을 요약해줘: " + fullContent).block());
     }
 
     public String generateTitle(String summarizedContent) {
-        return extractContent(openAiService.askQuestion("다음 요약 내용에 맞는 한 줄 제목을 만들어줘: " + summarizedContent).block());
+        // 고정된 threadId를 사용하여 제목 생성 요청
+        String threadId = "note-title";
+        return extractContent(openAiService.askQuestion(threadId, "다음 요약 내용에 맞는 한 줄 제목을 만들어줘: " + summarizedContent).block());
     }
 
     private String extractContent(String gptResponse) {
@@ -44,5 +48,4 @@ public class NoteSummaryService {
             return "추출 실패";
         }
     }
-
 }

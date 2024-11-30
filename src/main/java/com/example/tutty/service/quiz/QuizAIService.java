@@ -20,7 +20,7 @@ public class QuizAIService {
         this.objectMapper = objectMapper;
     }
 
-    public List<QuizQuestion> generateQuizQuestions(String content) {
+    public List<QuizQuestion> generateQuizQuestions(Long chatroomId, String content) {
         String prompt = """
     다음 내용을 바탕으로 5개의 퀴즈를 JSON 형식으로 만들어줘. 절대 코드 블록이나 마크다운 형식 없이, 순수한 JSON만 반환해줘:
     [
@@ -38,10 +38,11 @@ public class QuizAIService {
     생성할 퀴즈 내용:
     """ + content;
 
-        String response = openAiService.askQuestion(prompt).block();
+        // chatroomId를 threadId로 사용
+        String threadId = chatroomId.toString();
+        String response = openAiService.askQuestion(threadId, prompt).block();
         return parseQuizQuestions(response);
     }
-
 
     private List<QuizQuestion> parseQuizQuestions(String response) {
         List<QuizQuestion> quizQuestions = new ArrayList<>();
@@ -50,8 +51,10 @@ public class QuizAIService {
             // 원본 AI 응답 출력
             System.out.println("AI raw response: " + response);
 
-            // JSON 응답을 파싱하여 quizzes 배열 추출
+            // JSON 응답 파싱
             JsonNode rootNode = objectMapper.readTree(response);
+
+            // quizzes 배열 추출
             JsonNode quizzesArrayNode = rootNode.path("quizzes");
 
             if (quizzesArrayNode.isArray()) {
@@ -86,5 +89,4 @@ public class QuizAIService {
 
         return quizQuestions;
     }
-
 }

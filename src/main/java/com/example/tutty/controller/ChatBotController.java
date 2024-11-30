@@ -67,7 +67,8 @@ public class ChatBotController {
         String userId = authentication.getName();
         User user = userService.getUserByUserId(userId);
 
-        return openAiService.askQuestion(question)
+        // chatroomId를 threadId로 전달
+        return openAiService.askQuestion(chatroomId.toString(), question)
                 .flatMap(apiResponse -> {
                     String answer;
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -108,6 +109,7 @@ public class ChatBotController {
                 })
                 .defaultIfEmpty(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
+
     @GetMapping("/conversations/all")
     public ResponseEntity<List<ConversationResponseDTO>> getAllConversations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -66,9 +66,13 @@ public class QuizService {
 
 
     private Quiz createAndSaveQuiz(Long chatroomId, User user) {
+        // 채팅방의 전체 대화 내용을 가져옴
         String fullContent = conversationService.getChatroomContent(chatroomId);
-        List<QuizQuestion> questions = quizAiService.generateQuizQuestions(fullContent);
 
+        // chatroomId와 대화 내용을 기반으로 퀴즈 생성
+        List<QuizQuestion> questions = quizAiService.generateQuizQuestions(chatroomId, fullContent);
+
+        // 퀴즈 생성 및 저장
         Quiz quiz = new Quiz();
         quiz.setTotalQuestions(questions.size());
         quiz.setCorrectAnswers(0);
@@ -76,6 +80,7 @@ public class QuizService {
         quiz.setUser(user); // 사용자 설정
         quizRepository.save(quiz);
 
+        // 각 퀴즈 질문 저장
         questions.forEach(q -> {
             q.setQuiz(quiz);
             quizQuestionRepository.save(q);
@@ -83,6 +88,7 @@ public class QuizService {
 
         return quiz;
     }
+
 
     private QuizQuestionResponseDTO toQuizQuestionResponseDTO(QuizQuestion question) {
         return new QuizQuestionResponseDTO(

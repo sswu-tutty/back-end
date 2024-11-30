@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OpenAiService {
@@ -27,22 +28,27 @@ public class OpenAiService {
     @Value("${openai.api.key}")
     private String apiKey;
 
-    // 대화 히스토리를 유지하기 위한 리스트
-    private final List<Map<String, String>> conversationHistory = new ArrayList<>();
+    // 사용자별 대화 히스토리를 유지하기 위한 맵
+    private final Map<String, List<Map<String, String>>> conversationHistories = new ConcurrentHashMap<>();
 
     public OpenAiService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.openai.com")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
-
-        // 시스템 메시지를 대화 히스토리에 추가 (필요에 따라 수정 가능)
-        conversationHistory.add(Map.of("role", "system", "content", "You are a helpful assistant."));
     }
 
-    public Mono<String> askQuestion(String question) {
+    public Mono<String> askQuestion(String threadId, String question) {
+        // 사용자별 대화 히스토리를 가져오거나 새로 생성
+        List<Map<String, String>> conversationHistory = conversationHistories.computeIfAbsent(threadId, id -> {
+            List<Map<String, String>> newHistory = new ArrayList<>();
+            // 시스템 메시지 추가
+            newHistory.add(Map.of("role", "system", "content", "You are a helpful assistant."));
+            return newHistory;
+        });
+
         // 로그: 사용자 질문 추가
-        logger.info("Adding user question to conversation history: {}", question);
+        logger.info("Adding user question to conversation history for thread {}: {}", threadId, question);
         conversationHistory.add(Map.of("role", "user", "content", question));
 
         return webClient.post()
@@ -55,9 +61,9 @@ public class OpenAiService {
                 ))
                 .retrieve()
                 .bodyToMono(Map.class)
-                .doOnSubscribe(subscription -> logger.info("Sending request to OpenAI API for question: {}", question)) // 요청 전 로그
-                .doOnNext(response -> logger.info("Received response from OpenAI API: {}", response)) // 응답 성공 로그
-                .doOnError(error -> logger.error("Error occurred during OpenAI API request: {}", error.getMessage(), error)) // 에러 로그
+                .doOnSubscribe(subscription -> logger.info("Sending request to OpenAI API for thread {}: {}", threadId, question)) // 요청 전 로그
+                .doOnNext(response -> logger.info("Received response from OpenAI API for thread {}: {}", threadId, response)) // 응답 성공 로그
+                .doOnError(error -> logger.error("Error occurred during OpenAI API request for thread {}: {}", threadId, error.getMessage(), error)) // 에러 로그
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
                         .filter(throwable -> {
                             boolean shouldRetry = throwable instanceof WebClientResponseException &&
@@ -74,9 +80,15 @@ public class OpenAiService {
                     String assistantReply = (String) message.get("content");
 
                     // 로그: OpenAI 응답 추가
-                    logger.info("Adding assistant reply to conversation history: {}", assistantReply);
+                    logger.info("Adding assistant reply to conversation history for thread {}: {}", threadId, assistantReply);
                     conversationHistory.add(Map.of("role", "assistant", "content", assistantReply));
                     return assistantReply;
                 });
+    }
+
+    // 특정 사용자 또는 Thread ID의 대화 히스토리를 초기화하는 메서드
+    public void resetConversation(String threadId) {
+        logger.info("Resetting conversation history for thread {}", threadId);
+        conversationHistories.remove(threadId);
     }
 }
