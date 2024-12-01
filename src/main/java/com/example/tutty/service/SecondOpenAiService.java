@@ -37,10 +37,12 @@ public class SecondOpenAiService {
                 .bodyValue(Map.of(
                         "model", "ft:gpt-4o-mini-2024-07-18:personal:paper-summary-v2:AWy7zgTE",
                         "messages", List.of(
-                                Map.of("role", "system", "content", "You are a summarization assistant."),
+                                Map.of("role", "system", "content",
+                                        "너는 긴 논문 텍스트를 요약하는 에이전트이다. 다음 텍스트를 바탕으로 최소 5000자 이상의 상세한 요약을 작성해라. " +
+                                                "요약에는 연구 목적, 연구 방법, 주요 결과, 결론을 포함해야 한다."),
                                 Map.of("role", "user", "content", text)
                         ),
-                        "max_tokens", 500
+                        "max_tokens", 2000
                 ))
                 .retrieve()
                 .bodyToMono(Map.class)

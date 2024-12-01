@@ -55,8 +55,7 @@ public class QuizAIService {
             JsonNode rootNode = objectMapper.readTree(response);
 
             // quizzes 배열 추출
-            JsonNode quizzesArrayNode = rootNode.path("quizzes");
-
+            JsonNode quizzesArrayNode = rootNode.path("quiz");
             if (quizzesArrayNode.isArray()) {
                 for (JsonNode node : quizzesArrayNode) {
                     QuizQuestion quizQuestion = new QuizQuestion();

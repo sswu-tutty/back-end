@@ -57,7 +57,7 @@ public class OpenAiService {
                 .bodyValue(Map.of(
                         "model", "gpt-4-turbo",
                         "messages", conversationHistory,
-                        "max_tokens", 550
+                        "max_tokens", 700
                 ))
                 .retrieve()
                 .bodyToMono(Map.class)
