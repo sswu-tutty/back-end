@@ -24,14 +24,15 @@ public class QuizAIService {
         String prompt = """
     다음 내용을 바탕으로 5개의 퀴즈를 JSON 형식으로 만들어줘. 절대 코드 블록이나 마크다운 형식 없이, 순수한 JSON만 반환해줘:
     [
-        {
-            "questionText": "질문 내용",
-            "option1": "첫 번째 선택지",
-            "option2": "두 번째 선택지",
-            "option3": "세 번째 선택지",
-            "option4": "네 번째 선택지",
-            "correctOption": 정답 번호 (1, 2, 3 또는 4)
-        },
+        "quizzes": [
+                              {
+                                  "questionText": "질문 내용",
+                                  "option1": "첫 번째 선택지",
+                                  "option2": "두 번째 선택지",
+                                  "option3": "세 번째 선택지",
+                                  "option4": "네 번째 선택지",
+                                  "correctOption": 정답 번호 (1, 2, 3 또는 4)
+                              },
         ...
     ]
 
@@ -55,7 +56,7 @@ public class QuizAIService {
             JsonNode rootNode = objectMapper.readTree(response);
 
             // quizzes 배열 추출
-            JsonNode quizzesArrayNode = rootNode.path("quiz");
+            JsonNode quizzesArrayNode = rootNode.path("quizzes");
             if (quizzesArrayNode.isArray()) {
                 for (JsonNode node : quizzesArrayNode) {
                     QuizQuestion quizQuestion = new QuizQuestion();
