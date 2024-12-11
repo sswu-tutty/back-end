@@ -55,10 +55,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1. 최신 이미지를 풀받습니다
-      - name: docker pull
-        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
-        
+      # 1. 포트 점유 상태 확인 및 해제
       - name: Free up port 8080
         run: |
           if lsof -i:8080; then
@@ -66,18 +63,23 @@ jobs:
             sudo fuser -k 8080/tcp
           fi
       
-      # 2. 기존의 컨테이너를 중지시킵니다
-      - name: docker stop container
+      # 2. 기존 컨테이너 중지 및 제거
+      - name: Stop and remove existing container
         run: |
           if [ $(sudo docker ps -a -q -f name=tutty) ]; then
+            echo "Stopping and removing existing container..."
             sudo docker stop tutty
             sudo docker rm tutty
           fi
 
-      # 3. 최신 이미지를 컨테이너화하여 실행시킵니다
-      - name: docker run new container
+      # 3. 최신 이미지를 가져옴
+      - name: Pull latest Docker image
+        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
+
+      # 4. 새 컨테이너 실행
+      - name: Run new container
         run: sudo docker run --name tutty --rm -d -p 8080:8080 --env-file ~/.env ${{ secrets.DOCKERHUB_USERNAME }}/tutty:latest
 
-      # 4. 미사용 이미지를 정리합니다
-      - name: delete old docker image
+      # 5. 사용하지 않는 Docker 리소스 정리
+      - name: Clean up unused Docker resources
         run: sudo docker system prune -f
