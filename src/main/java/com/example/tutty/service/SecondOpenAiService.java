@@ -35,11 +35,10 @@ public class SecondOpenAiService {
                 .uri("/v1/chat/completions")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + secondApiKey)
                 .bodyValue(Map.of(
-                        "model", "ft:gpt-4o-mini-2024-07-18:personal:paper-summary-v2:AWy7zgTE",
+                        "model", "ft:gpt-4o-mini-2024-07-18:personal:paper-summary:AUUI4kLH ",
                         "messages", List.of(
                                 Map.of("role", "system", "content",
-                                        "너는 긴 논문 텍스트를 요약하는 에이전트이다. 다음 텍스트를 바탕으로 최소 5000자 이상의 상세한 요약을 작성해라. " +
-                                                "요약에는 연구 목적, 연구 방법, 주요 결과, 결론을 포함해야 한다."),
+                                        "너는 연구의 목적과 중요성, 명료성과 간결성,객관성 유지,논문의 구조를 반영등을 고려하여 논문 요약해주는 모델이야"),
                                 Map.of("role", "user", "content", text)
                         ),
                         "max_tokens", 2000
