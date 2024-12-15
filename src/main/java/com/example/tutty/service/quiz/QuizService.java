@@ -30,7 +30,7 @@ public class QuizService {
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuizAIService quizAiService;
     private final ConversationService conversationService;
-    private final UserService userService; // UserService 추가
+    private final UserService userService;
 
     @Autowired
     public QuizService(QuizRepository quizRepository, QuizQuestionRepository quizQuestionRepository,
@@ -44,14 +44,11 @@ public class QuizService {
     }
 
     public QuizResponseDTO generateQuizForChatroom(Long chatroomId) {
-        // 인증된 사용자 가져오기
         User user = getCurrentUser();
 
-        // 생성된 퀴즈와 질문 가져오기
         Quiz quiz = createAndSaveQuiz(chatroomId, user);
         List<QuizQuestion> questions = quizQuestionRepository.findByQuizId(quiz.getId());
 
-        // 첫 번째 질문 텍스트 가져오기
         String firstQuestionText = questions.isEmpty() ? null : questions.get(0).getQuestionText();
 
         return new QuizResponseDTO(
@@ -66,21 +63,17 @@ public class QuizService {
 
 
     private Quiz createAndSaveQuiz(Long chatroomId, User user) {
-        // 채팅방의 전체 대화 내용을 가져옴
-        String fullContent = conversationService.getChatroomContent(chatroomId);
+        String fullContent = conversationService.getChatroomContent(chatroomId, user);
 
-        // chatroomId와 대화 내용을 기반으로 퀴즈 생성
         List<QuizQuestion> questions = quizAiService.generateQuizQuestions(chatroomId, fullContent);
 
-        // 퀴즈 생성 및 저장
         Quiz quiz = new Quiz();
         quiz.setTotalQuestions(questions.size());
         quiz.setCorrectAnswers(0);
         quiz.setChatroomId(chatroomId);
-        quiz.setUser(user); // 사용자 설정
+        quiz.setUser(user);
         quizRepository.save(quiz);
 
-        // 각 퀴즈 질문 저장
         questions.forEach(q -> {
             q.setQuiz(quiz);
             quizQuestionRepository.save(q);

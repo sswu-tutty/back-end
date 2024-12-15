@@ -47,8 +47,8 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public String getChatroomContent(Long chatroomId) {
-        List<Conversation> conversations = conversationRepository.findByChatroomId(chatroomId);
+    public String getChatroomContent(Long chatroomId, User user) {
+        List<Conversation> conversations = conversationRepository.findByChatroomIdAndUser(chatroomId, user);
         return conversations.stream()
                 .map(Conversation::getAnswer)
                 .collect(Collectors.joining(" "));
