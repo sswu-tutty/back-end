@@ -35,7 +35,7 @@ public class SecondOpenAiService {
                 .uri("/v1/chat/completions")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + secondApiKey)
                 .bodyValue(Map.of(
-                        "model", "ft:gpt-4o-mini-2024-07-18:personal:paper-summary:AUUI4kLH ",
+                        "model", "ft:gpt-4o-mini-2024-07-18:personal:paper-summary:AUUI4kLH",
                         "messages", List.of(
                                 Map.of("role", "system", "content",
                                         "너는 연구의 목적과 중요성, 명료성과 간결성,객관성 유지,논문의 구조를 반영등을 고려하여 논문 요약해주는 모델이야"),
