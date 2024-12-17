@@ -43,7 +43,7 @@ public class OpenAiService {
         List<Map<String, String>> conversationHistory = conversationHistories.computeIfAbsent(threadId, id -> {
             List<Map<String, String>> newHistory = new ArrayList<>();
             // 시스템 메시지 추가
-            newHistory.add(Map.of("role", "system", "content", "You are a helpful assistant."));
+            newHistory.add(Map.of("role", "system", "content", "You are a helpful assistant. Please respond in no more than 5 sentences."));
             return newHistory;
         });
 
